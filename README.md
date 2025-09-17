@@ -20,7 +20,7 @@ From a cost perspective, the Hypercheap stack is:
 ---
 # Demo
 
-https://github.com/jordan-gibbs/hypercheap-voiceAI/blob/master/assets/voice_assistant_demo.mp4?raw=1
+https://github.com/jordan-gibbs/hypercheap-voiceAI/blob/master/assets/voice_assistant_demo.mp4
 
 ---
 # Setup
