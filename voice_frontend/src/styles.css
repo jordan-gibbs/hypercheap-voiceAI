@@ -1,0 +1,182 @@
+:root {
+  --bg: #0b0c0e;
+  --card: #14161a;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #78ffd6;
+  --accent-2: #a8ff78;
+  --ring: #5eead4;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #4ade80;
+    --accent-2: #22d3ee;
+    --ring: #14b8a6;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #fafafa;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #4ade80;
+  --accent-2: #22d3ee;
+  --ring: #14b8a6;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0c0e;
+  --card: #14161a;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #78ffd6;
+  --accent-2: #a8ff78;
+  --ring: #5eead4;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: "Figtree", system-ui, ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: radial-gradient(1200px 800px at 10% -10%, color-mix(in lab, var(--accent), transparent 75%), transparent),
+              radial-gradient(1000px 600px at 120% 20%, color-mix(in lab, var(--accent-2), transparent 75%), transparent),
+              var(--bg);
+  color: var(--text);
+}
+
+/* FILL VIEWPORT EXACTLY (no page growth), flex column layout */
+.container {
+  height: 100dvh;         /* dynamic viewport height, fixes mobile 100vh issues */
+  display: flex;
+  flex-direction: column;
+  padding: 32px 80px 24px; /* bottom padding so transcript never touches edge */
+  overflow: hidden;        /* prevent page scroll; inner areas will scroll */
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 2px 14px color-mix(in lab, var(--ring), transparent 75%);
+}
+
+.title {
+  font-weight: 800;
+  letter-spacing: .2px;
+  font-size: clamp(1.25rem, 1rem + 3vw, 1.5rem);
+}
+
+/* Sun/Moon icon button */
+.icon { width: 20px; height: 20px; display: block; }
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in lab, var(--ring), transparent 70%);
+  background: color-mix(in lab, var(--card), transparent 0%);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform .12s ease, background .2s ease, border-color .2s ease;
+}
+.icon-btn:hover {
+  transform: translateY(-1px);
+  background: color-mix(in lab, var(--ring), transparent 90%);
+}
+
+/* MAIN AREA uses flex so the transcript can take the leftover height */
+.hero {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1 1 auto;     /* fill remaining height under the header */
+  min-height: 0;      /* ✨ allow children to shrink & scroll inside */
+}
+
+.card {
+  background: color-mix(in lab, var(--card), transparent 0%);
+  border: 1px solid color-mix(in lab, var(--ring), transparent 80%);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 6px 30px color-mix(in lab, var(--ring), transparent 88%);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mic {
+  font-size: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in lab, var(--ring), transparent 60%);
+  background: linear-gradient(180deg, color-mix(in lab, var(--card), transparent 0%), color-mix(in lab, var(--card), transparent 20%));
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.mic:hover { transform: translateY(-1px); }
+.mic.active {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 6px color-mix(in lab, var(--ring), transparent 82%);
+}
+
+.caption {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in lab, var(--ring), transparent 88%);
+  border: 1px solid color-mix(in lab, var(--ring), transparent 60%);
+  color: var(--text);
+}
+
+/* TRANSCRIPT fills leftover height and scrolls; never pushes page */
+.transcript {
+  font-size: 18px;
+  flex: 1 1 auto;  /* take remaining space in .hero */
+  min-height: 0;   /* ✨ critical for scrollable flex children */
+  overflow: auto;
+}
+
+.footer {
+  margin-top: 32px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}

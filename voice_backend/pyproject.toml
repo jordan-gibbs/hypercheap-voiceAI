@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "hypercheap-voice-agent-backend"
+version = "0.1.0"
+description = "Python Backend for the Hypercheap Voice Agent"
+authors = ["Jordan Gibbs <jordan@jordangibbs.xyz>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = {extras = ["all"], version = "^0.111.0"}
+python-dotenv = "^1.0.1"
+websockets = "^12.0"
+httpx = "^0.27.0"
+openai = "^1.23.6"
+pydantic-settings = "^2.10.1"
+aiofiles = "^24.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+pytest-asyncio = "^0.23.6"
+black = "^24.4.2"
+ruff = "^0.4.2"
+mypy = "^1.9.0"
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "W", "I", "UP"] # Standard rules + isort + pyupgrade

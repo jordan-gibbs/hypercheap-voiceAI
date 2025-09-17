@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/audio/mic.ts","./src/audio/resample.ts","./src/lib/ws.ts"],"version":"5.9.2"}

@@ -1,0 +1,152 @@
+# Hypercheap AI Voice Agent
+
+<p align="center">
+  <img alt="Hypercheap Voice Agent" src="assets/hero.png" width="900">
+</p>
+
+### Welcome to the cheapest, lowest-latency, and best performing AI voice agent possible today. 
+
+**This stack achieves:**
+- Costs as low as **\$0.28 per hour** ($0.0046 per minute)
+- Latency between 600-800ms from end of speech to first audio frame
+- State-of-the-art voice performance thanks to inworld.ai
+
+From a cost perspective, the Hypercheap stack is: 
+- **32x** cheaper than OpenAI Realtime
+- **20x** cheaper than Elevenlabs Voice Agents
+
+> **Stack:** Fennec (Realtime ASR) → Baseten (LLM via OpenAI-compatible API) → Inworld (streamed TTS)
+
+---
+# Demo
+
+
+
+---
+# Setup
+
+## 1) Create accounts & grab keys
+
+### A. Fennec ASR (Realtime speech-to-text)
+
+1. Go to **Fennec** and create a free account: [https://fennec-asr.com](https://fennec-asr.com)
+2. Create your first **API key** in the dashboard.
+
+You’ll paste that key into your .env as `FENNEC_API_KEY`.
+
+---
+
+### B. Baseten (LLM — OpenAI-compatible)
+
+1. Sign up for **Baseten**: [https://app.baseten.co](https://app.baseten.co)
+2. Click "Model APIs" and "Add Model API" and create one for "Llama 4 Scout"
+3. After creating, click "API Endpoint" and generate an API key.
+4. We call Baseten via the **OpenAI-compatible** endpoint. The default base URL in this repo is `https://inference.baseten.co/v1` and the default model is `meta-llama/Llama-4-Scout-17B-16E-Instruct`.
+
+You’ll paste the API key as `BASETEN_API_KEY` into your .env. Keep the provided base URL and model (or swap to another more performant Baseten model if you like).
+
+---
+
+### C. Inworld (Text‑to‑Speech)
+
+1. Create an **Inworld** account and open the TTS page: [https://inworld.ai/tts](https://inworld.ai/tts)
+2. In the **Portal**, generate an **API key (Base64)** and **copy the Base64 value**: [https://portal.inworld.ai](https://portal.inworld.ai)
+3. (Optional) Choose a voice and set your defaults (model `inworld-tts-1`, 48 kHz, etc.). You can also clone voices with the inworld platform at no extra cost. 
+
+> The backend expects the **Base64** form for Basic auth. In the portal there’s a *“Copy base64”* button—use that.
+
+Paste the Base64 API key as `INWORLD_API_KEY`. You can also set `INWORLD_VOICE_ID` (e.g. `Olivia`).
+
+---
+
+## 2) Fill your `.env`
+
+Create `voice_backend/.env` (or copy from `voice_backend/.env.example`) and fill the values you just collected:
+
+```env
+# Fennec ASR
+FENNEC_API_KEY=...
+FENNEC_SAMPLE_RATE=16000
+FENNEC_CHANNELS=1
+
+# Baseten (OpenAI-compatible)
+BASETEN_API_KEY=...
+BASETEN_BASE_URL=https://inference.baseten.co/v1
+BASETEN_MODEL=meta-llama/Llama-4-Scout-17B-16E-Instruct
+
+# Inworld TTS
+INWORLD_API_KEY=base64_xxx        # paste the **Base64** API key from the portal
+INWORLD_MODEL_ID=inworld-tts-1
+INWORLD_VOICE_ID=Olivia
+INWORLD_SAMPLE_RATE=48000
+```
+
+For the frontend, create `voice_frontend/.env.local` and point to your backend WebSocket:
+
+```env
+VITE_AGENT_WS_URL=ws://localhost:8000/ws/agent
+```
+
+---
+
+## 3) Run locally
+
+**Backend**
+
+```bash
+cd voice_backend
+pip install --upgrade pip
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Frontend**
+
+```bash
+cd voice_frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) and click the mic button to start chatting.
+
+---
+
+## 4) Docker (optional)
+
+Build the container and run it with your `.env`:
+
+```bash
+docker build -t hypercheap-agent:latest -f voice_backend/Dockerfile .
+docker run --env-file voice_backend/.env -p 8000:8000 hypercheap-agent:latest
+```
+
+If you also want the built UI served by FastAPI, run `npm run build` in `voice_frontend` first — it outputs to `voice_backend/app/static`.
+
+---
+
+## 5) Cost cheat‑sheet (why it’s \~\$0.28/hr)
+
+* **ASR (Fennec, streaming):** as low as **\$0.11/hr** on scale tier (or **\$0.16/hr** starter), with a generous free trial
+* **LLM (Baseten Llama‑4 Scout 17B):** **\$0.13 / 1M input tokens** and **\$0.50 / 1M output tokens** (OpenAI‑compatible API).
+* **TTS (Inworld):** **\$5.00 / 1M characters**, which they estimate as **≈\$0.25 per audio‑hour** of generated speech.
+
+> **Example:** In a typical chat, the AI speaks \~40–60% of the time.
+>
+> • Fennec ASR: \~\$0.11/hr
+> • Inworld TTS: \$0.25 × 0.5 = **\$0.125/hr** (assumes 30 min of AI speech per session hour)
+> • Baseten LLM tokens: usually **\~\$0.01–\$0.03/hr** at short replies
+>
+> **Total:** **\~\$0.25–\$0.35 per session hour**
+
+> Actual costs vary with ASR plan, talk ratio, and how verbose the model is. The defaults in this repo (short replies, low max tokens) are tuned to keep costs small.
+
+---
+
+
+## 7) What’s next
+
+* Swap voices (Inworld) or models (Baseten) by changing the env vars.
+* Tune VAD in `voice_backend/app/agent/fennec_ws.py` for faster/longer turns.
+* Deploy the backend behind HTTPS and a reverse proxy (e.g., Caddy or NGINX) for production.
+
+MIT © Fennec ASR
