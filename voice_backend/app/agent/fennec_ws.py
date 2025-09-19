@@ -31,9 +31,7 @@ class FennecWSClient:
     to avoid hanging the first session and blocking the next.
     """
 
-    def __init__(
-        self, api_key: str, sample_rate: int = 16000, channels: int = 1, vad: dict | None = None
-    ) -> None:
+    def __init__(self, api_key: str, sample_rate: int = 16000, channels: int = 1, vad: dict | None = None) -> None:
         self._api_key = api_key
         self._sr = sample_rate
         self._ch = channels

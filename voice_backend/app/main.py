@@ -4,9 +4,8 @@ import logging
 import os
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .agent.fennec_ws import DEFAULT_VAD, FennecWSClient
 from .agent.inworld_tts import InworldTTS
@@ -106,9 +105,7 @@ async def ws_agent(ws: WebSocket):
                             if session_started:
                                 continue
                             # Synchronization: Start the agent (connects to Fennec, sends VAD config)
-                            await ws.send_text(
-                                StatusEvent(message="initializing").model_dump_json()
-                            )
+                            await ws.send_text(StatusEvent(message="initializing").model_dump_json())
                             await agent.start(
                                 on_asr_final=on_asr_final,
                                 on_token=on_llm_token,
@@ -144,11 +141,5 @@ async def ws_agent(ws: WebSocket):
         with contextlib.suppress(Exception):
             await ws.close()
 
-app.mount(
-    "/",
-    StaticFiles(
-        directory=os.path.join(os.path.dirname(__file__), "static"),
-        html=True
-    ),
-    name="static"
-)
+
+app.mount("/", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static"), html=True), name="static")

@@ -23,6 +23,7 @@ anywhere: [breathe], [clear_throat], [cough], [laugh], [sigh], [yawn].
 Use tags verbatim; do not invent new ones.
 """
 
+
 class BasetenChat:
     def __init__(self, api_key: str, base_url: str, model: str) -> None:
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
