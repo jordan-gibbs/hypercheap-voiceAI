@@ -1,4 +1,3 @@
-# .github/workflows/ci.yml
 name: CI
 
 on:
@@ -7,6 +6,7 @@ on:
 
 jobs:
   backend:
+    name: backend (lint+type+tests)
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: voice_backend } }
     steps:
@@ -21,6 +21,7 @@ jobs:
       - run: pytest -q
 
   frontend:
+    name: frontend (build)
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: voice_frontend } }
     steps:
@@ -29,4 +30,3 @@ jobs:
         with: { node-version: '20' }
       - run: npm ci
       - run: npm run build
-

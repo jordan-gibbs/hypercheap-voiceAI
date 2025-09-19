@@ -7,7 +7,7 @@
 ### Welcome to the cheapest, lowest-latency, and best performing AI voice agent possible today. 
 
 **This stack achieves:**
-- Costs as low as **\$0.28 per hour** ($0.0046 per minute)
+- Total costs as low as **\$0.28 per hour** ($0.0046 per minute)
 - Latency between 600-800ms from end of speech to first audio frame
 - State-of-the-art voice performance thanks to inworld.ai
 
@@ -143,10 +143,10 @@ If you also want the built UI served by FastAPI, run `npm run build` in `voice_f
 ---
 
 
-## 7) What’s next
+## 6) Extras
 
 * Swap voices (Inworld) or models (Baseten) by changing the env vars.
-* Tune VAD in `voice_backend/app/agent/fennec_ws.py` for faster/longer turns.
-* Deploy the backend behind HTTPS and a reverse proxy (e.g., Caddy or NGINX) for production.
+* Tune VAD in `voice_backend/app/agent/fennec_ws.py` for faster/longer turns. It is extremely aggressive by default, which can cut off slow speakers.
+* Swap LLMs in Baseten for better intelligence at the price of increased cost and higher latency
 
-MIT © Fennec ASR
+MIT © Jordan Gibbs
