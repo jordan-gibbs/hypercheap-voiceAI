@@ -8,6 +8,10 @@ jobs:
   backend:
     name: backend (lint+type+tests)
     runs-on: ubuntu-latest
+    env:
+      FENNEC_API_KEY: test
+      BASETEN_API_KEY: test
+      INWORLD_API_KEY: test
     defaults: { run: { working-directory: voice_backend } }
     steps:
       - uses: actions/checkout@v4
