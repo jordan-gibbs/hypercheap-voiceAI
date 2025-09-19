@@ -95,7 +95,7 @@ VITE_AGENT_WS_URL=ws://localhost:8000/ws/agent
 
 ```bash
 cd voice_backend
-pip install --upgrade pip
+pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 

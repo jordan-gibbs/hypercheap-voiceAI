@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "hypercheap-voice-agent-backend"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python Backend for the Hypercheap Voice Agent"
 authors = ["Jordan Gibbs <jordan@jordangibbs.xyz>"]
 readme = "README.md"
 packages = [{include = "app"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.13"
 fastapi = {extras = ["all"], version = "^0.111.0"}
 python-dotenv = "^1.0.1"
 websockets = "^12.0"
