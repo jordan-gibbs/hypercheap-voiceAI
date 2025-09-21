@@ -14,6 +14,7 @@
 From a cost perspective, the Hypercheap stack is: 
 - **32x** cheaper than OpenAI Realtime
 - **20x** cheaper than Elevenlabs Voice Agents
+- **10x** cheaper than Vapi
 
 > **Stack:** Fennec (Realtime ASR) → Baseten (LLM via OpenAI-compatible API) → Inworld (streamed TTS)
 
@@ -29,7 +30,7 @@ https://github.com/user-attachments/assets/e09cc92c-8603-4d11-a367-3c4a3e0080f9
 
 ### A. Fennec ASR (Realtime speech-to-text)
 
-1. Go to **Fennec** and create a free account: [https://fennec-asr.com](https://fennec-asr.com)
+1. Go to **Fennec** and create a free account (10 hours included): [https://fennec-asr.com](https://fennec-asr.com)
 2. Create your first **API key** in the dashboard.
 
 You’ll paste that key into your .env as `FENNEC_API_KEY`.
@@ -38,10 +39,10 @@ You’ll paste that key into your .env as `FENNEC_API_KEY`.
 
 ### B. Baseten (LLM — OpenAI-compatible)
 
-1. Sign up for **Baseten**: [https://app.baseten.co](https://app.baseten.co)
+1. Sign up for **Baseten** (1 dollar of inference included): [https://app.baseten.co](https://app.baseten.co)
 2. Click "Model APIs" and "Add Model API" and create one for "Llama 4 Scout"
 3. After creating, click "API Endpoint" and generate an API key.
-4. We call Baseten via the **OpenAI-compatible** endpoint. The default base URL in this repo is `https://inference.baseten.co/v1` and the default model is `meta-llama/Llama-4-Scout-17B-16E-Instruct`.
+4. This setup calls Baseten via the **OpenAI-compatible** endpoint. The default base URL in this repo is `https://inference.baseten.co/v1` and the default model is `meta-llama/Llama-4-Scout-17B-16E-Instruct`.
 
 You’ll paste the API key as `BASETEN_API_KEY` into your .env. Keep the provided base URL and model (or swap to another more performant Baseten model if you like).
 
@@ -75,7 +76,7 @@ BASETEN_BASE_URL=https://inference.baseten.co/v1
 BASETEN_MODEL=meta-llama/Llama-4-Scout-17B-16E-Instruct
 
 # Inworld TTS
-INWORLD_API_KEY=base64_xxx        # paste the **Base64** API key from the portal
+INWORLD_API_KEY=...  
 INWORLD_MODEL_ID=inworld-tts-1
 INWORLD_VOICE_ID=Olivia
 INWORLD_SAMPLE_RATE=48000
@@ -124,10 +125,10 @@ If you also want the built UI served by FastAPI, run `npm run build` in `voice_f
 
 ---
 
-## 5) Cost cheat‑sheet (why it’s \~\$0.28/hr)
+## 5) Cost Breakdown (how it’s \~\$0.28/hr)
 
 * **ASR (Fennec, streaming):** as low as **\$0.11/hr** on scale tier (or **\$0.16/hr** starter), with a generous free trial
-* **LLM (Baseten Llama‑4 Scout 17B):** **\$0.13 / 1M input tokens** and **\$0.50 / 1M output tokens** (OpenAI‑compatible API).
+* **LLM (Baseten Llama‑4 Scout 17B):** **\$0.13 / 1M input tokens** and **\$0.50 / 1M output tokens**
 * **TTS (Inworld):** **\$5.00 / 1M characters**, which they estimate as **≈\$0.25 per audio‑hour** of generated speech.
 
 > **Example:** In a typical chat, the AI speaks \~40–60% of the time.
@@ -138,16 +139,17 @@ If you also want the built UI served by FastAPI, run `npm run build` in `voice_f
 >
 > **Total:** **\~\$0.25–\$0.35 per session hour**
 
-> Actual costs vary with ASR plan, talk ratio, and how verbose the model is. The defaults in this repo (short replies, low max tokens) are tuned to keep costs small.
+> Actual costs vary with ASR plan, talk ratio, and how verbose the model is. The defaults in this repo (short replies, low max tokens) are tuned to keep costs as low as possible.
 
 ---
 
 
 ## 6) Customizations
 
-* Swap voices (Inworld) or models (Baseten) by changing the env vars.
+* Swap voices (Inworld) or LLM models (Baseten) by changing the env vars.
 * Tune VAD in `voice_backend/app/agent/fennec_ws.py` for faster/longer turns. It is extremely aggressive by default, which can cut off slow speakers.
 * Swap LLMs in Baseten for better intelligence at the price of increased cost and higher latency
 * Add in the audio markups into the LLM prompt, and switch the model to the Inworld `inworld-tts-1-max` model for increased realism (at double the cost and ~50% increased latency).
+* Adjust history length in `voice_backend/session.py` by altering this: `self._max_history_msgs`. This will increase costs.
 
 MIT © Jordan Gibbs
