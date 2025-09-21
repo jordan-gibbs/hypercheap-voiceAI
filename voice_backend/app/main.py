@@ -45,7 +45,6 @@ async def health():
 @app.websocket("/ws/agent")
 async def ws_agent(ws: WebSocket):
     await ws.accept()
-    # Synchronization: Send "connected". We wait for the client "start" message to initialize services.
     await ws.send_text(StatusEvent(message="connected").model_dump_json())
 
     fennec = FennecWSClient(
@@ -68,16 +67,13 @@ async def ws_agent(ws: WebSocket):
     agent = AgentSession(fennec, llm, tts)
     session_started = False
 
-    # --- Outbound event bridges to the client
     async def on_asr_final(text: str):
         await ws.send_text(AsrFinalEvent(text=text).model_dump_json())
 
     async def on_llm_token(tok: str):
-        # stream tokens so the UI can show draft text live
         await ws.send_text(LlmTokenEvent(text=tok).model_dump_json())
 
     async def on_tts_chunk(b: bytes):
-        # raw PCM16 bytes @ 48k; client streams it via AudioWorklet
         await ws.send_bytes(b)
 
     async def on_segment_done():
@@ -86,7 +82,6 @@ async def ws_agent(ws: WebSocket):
     async def on_audio_start():
         await ws.send_text(AudioStartEvent().model_dump_json())
 
-    # NEW: Used for accurate frontend labeling (signals LLM completion)
     async def on_turn_done():
         await ws.send_text(TurnDoneEvent().model_dump_json())
 
@@ -95,7 +90,6 @@ async def ws_agent(ws: WebSocket):
             msg = await ws.receive()
             if msg["type"] == "websocket.receive":
                 if "bytes" in msg and msg["bytes"] is not None:
-                    # Only feed audio if the session has successfully started
                     if session_started:
                         await agent.feed_pcm(msg["bytes"])
                 elif "text" in msg and msg["text"]:
@@ -104,7 +98,6 @@ async def ws_agent(ws: WebSocket):
                         if payload.get("type") == "start":
                             if session_started:
                                 continue
-                            # Synchronization: Start the agent (connects to Fennec, sends VAD config)
                             await ws.send_text(StatusEvent(message="initializing").model_dump_json())
                             await agent.start(
                                 on_asr_final=on_asr_final,
@@ -114,13 +107,10 @@ async def ws_agent(ws: WebSocket):
                                 on_audio_start=on_audio_start,
                                 on_turn_done=on_turn_done,
                             )
-                            # Fennec is ready and VAD config is sent (awaited in agent.start).
                             session_started = True
-                            # Signal the frontend that the session is fully ready.
                             await ws.send_text(StatusEvent(message="ready").model_dump_json())
 
                         elif payload.get("type") == "stop":
-                            # Gracefully stop: finish current turn if any, then announce done
                             if session_started:
                                 await agent.stop()
                             await ws.send_text(DoneEvent().model_dump_json())
@@ -128,7 +118,6 @@ async def ws_agent(ws: WebSocket):
                     except Exception as e:
                         log.exception("Error processing client message")
                         await ws.send_text(StatusEvent(message=f"error: {e}").model_dump_json())
-                        # If initialization failed, break the loop to close the session.
                         if payload.get("type") == "start" and not session_started:
                             break
             elif msg["type"] == "websocket.disconnect":

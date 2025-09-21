@@ -28,4 +28,4 @@ line-length = 120
 
 [tool.ruff]
 line-length = 120
-select = ["E", "F", "W", "I", "UP"] # Standard rules + isort + pyupgrade
+select = ["E", "F", "W", "I", "UP"]

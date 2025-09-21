@@ -1,7 +1,5 @@
 from typing import Literal, Optional
-
 from pydantic import BaseModel
-
 
 class StartMessage(BaseModel):
     type: Literal["start"]
@@ -36,7 +34,6 @@ class SegmentDoneEvent(BaseModel):
     type: Literal["segment_done"] = "segment_done"
 
 
-# NEW: Signals that the LLM generation for the turn is complete (audio might still be playing)
 class TurnDoneEvent(BaseModel):
     type: Literal["turn_done"] = "turn_done"
 

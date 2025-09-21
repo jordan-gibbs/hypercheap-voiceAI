@@ -10,14 +10,6 @@ logger = logging.getLogger("hypercheap.inworld")
 
 
 class InworldTTS:
-    """
-    Streams audio from Inworld TTS (NDJSON-like stream of JSON objects with base64 audio).
-    POST https://api.inworld.ai/tts/v1/voice:stream with Basic auth,
-    streaming chunks via result.audioContent.
-
-    This version reuses a single HTTP/2 client per session for lower latency.
-    """
-
     def __init__(
         self,
         api_key_basic_b64: str,
@@ -52,6 +44,7 @@ class InworldTTS:
             "text": text,
             "voiceId": self._voice,
             "modelId": self._model,
+            "temperature": 1.2,
             "audio_config": {
                 "audio_encoding": "LINEAR16",
                 "sample_rate_hertz": self._sr,

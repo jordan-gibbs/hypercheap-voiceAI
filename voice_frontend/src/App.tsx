@@ -39,7 +39,6 @@ export default function App() {
   const [chat, setChat] = useState<ChatItem[]>([])
   const [assistantDraft, setAssistantDraft] = useState('')
 
-  // State for accurate labeling
   const [isThinking, setIsThinking] = useState(false); // Tracks if LLM is active
 
   const assistantDraftRef = useRef(assistantDraft)
@@ -53,7 +52,6 @@ export default function App() {
 
   const wsRef = useRef<Awaited<ReturnType<typeof connectAndRecord>> | null>(null);
 
-  // Auto-scroll transcript
   const transcriptRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = transcriptRef.current
@@ -61,7 +59,6 @@ export default function App() {
     el.scrollTop = el.scrollHeight
   }, [chat, assistantDraft])
 
-  // Helper function to stop fallback playback (Worklet is stopped via ws.ts events)
   const stopFallbackPlayback = () => {
     playingRef.current = false;
     queueRef.current = [];
@@ -72,13 +69,11 @@ export default function App() {
     }
   }
 
-  // Fallback playback logic
   const playNext = async () => {
     if (!audioRef.current) return
     if (playingRef.current) return
     const next = queueRef.current.shift()
     if (!next) {
-      // Fallback queue empty. Status update handled by the derived status useEffect.
       return
     }
     playingRef.current = true;
@@ -97,36 +92,28 @@ export default function App() {
     return () => a.removeEventListener('ended', onEnded)
   }, [])
 
-  // Derive the UI status from the underlying states (isThinking, isPlaying, active)
   useEffect(() => {
     const isPlaying = workletPlayingRef.current || playingRef.current;
 
-    // Handle transitional states explicitly set during start/stop flow
     if (['idle', 'connecting', 'initializing', 'stopping', 'error'].includes(status)) {
         return;
     }
 
-    // Determine dynamic state during an active session
     if (active) {
         if (isPlaying) {
             setStatus('speaking');
         } else if (isThinking) {
             setStatus('thinking');
         } else {
-            // Active, not thinking, not speaking -> Ready/Listening
             setStatus('ready');
         }
     } else if (status !== 'idle' && status !== 'error') {
-        // If not active and not already idle/error, transition to idle
         setStatus('idle');
     }
-    // We use JSON.stringify(workletPlayingRef.current) and playingRef.current as dependencies
-    // because the refs themselves don't trigger updates, but their .current value changing should.
   }, [isThinking, JSON.stringify(workletPlayingRef.current), JSON.stringify(playingRef.current), active, status]);
 
 
   async function start() {
-    // Create/resume the playback AudioContext in response to this click
     try {
       await primePlayer()
     } catch (e) {
@@ -139,34 +126,26 @@ export default function App() {
     setChat([])
     setAssistantDraft('')
     setIsThinking(false);
-    setStatus('connecting') // Initial connection phase
+    setStatus('connecting')
 
     const onAsr = (t: string) => {
-      // User spoke. System starts thinking.
+
       setIsThinking(true);
 
-      // BARGE-IN: Stop any ongoing fallback playback immediately.
-      // ws.ts handles clearing the worklet buffer when asr_final is received.
       stopFallbackPlayback();
 
-      // A new user message means the previous AI turn is complete (or interrupted).
-      // Finalize the last assistant message and add the new user message.
       setChat(prev => {
         const newChat = [...prev]
-        // 1. If there's an assistant draft, commit it to the chat.
         if (assistantDraftRef.current) {
           newChat.push({ role: 'assistant', content: assistantDraftRef.current })
         }
-        // 2. Add the new user message.
         newChat.push({ role: 'user', content: t })
         return newChat
       })
-      // 3. Clear the draft for the next AI response.
       setAssistantDraft('')
     }
 
     const onStatus = (s: string) => {
-      // Handle synchronization statuses from backend
       if (s === 'connected') setStatus('connecting');
       else if (s === 'initializing') setStatus('initializing');
       else if (s === 'ready') setStatus('ready');
@@ -174,51 +153,41 @@ export default function App() {
     }
 
     const onToken = (tok: string) => {
-      // We are receiving tokens, so we are definitely thinking.
       setIsThinking(true);
       setAssistantDraft(prev => prev + tok)
     }
 
     const onSegment = (blob: Blob) => {
-      // A segment of audio is ready.
-      // If using fallback (blob size > 0), queue it.
       if (blob && blob.size > 0) {
         console.warn("Using fallback audio element playback.");
         queueRef.current.push(blob)
         void playNext()
       }
-      // If using streaming (blob size == 0), the worklet handles playback and state updates via onPlaybackState.
     }
 
     const onTurnDone = () => {
-        // LLM generation is complete for this turn.
         setIsThinking(false);
     }
 
     const onPlaybackState = (isPlaying: boolean) => {
         workletPlayingRef.current = isPlaying;
-        // Trigger re-evaluation of the derived status by toggling a dependency of the useEffect
         setIsThinking(prev => prev);
     }
 
     const onDone = () => {
-      // Session is over. Commit the very last assistant message if it exists.
       setChat(prev => {
         if (assistantDraftRef.current) {
           return [...prev, { role: 'assistant', content: assistantDraftRef.current }]
         }
         return prev
       })
-      setAssistantDraft('') // clear ephemeral draft
+      setAssistantDraft('')
 
-      // Tear down UI/connection state
       stopFallbackPlayback();
       setIsThinking(false);
 
-      // Use a temporary check for the status *before* onDone was called
       const currentStatus = document.documentElement.getAttribute('data-status') || status;
 
-      // If status was error, keep it, otherwise set to idle.
       if (currentStatus !== 'error') {
         setStatus('idle');
       }
@@ -239,13 +208,11 @@ export default function App() {
 
   async function stop() {
     if (!wsRef.current) return
-    setStatus('stopping') // Indicate closing down
+    setStatus('stopping')
     await wsRef.current.stop()
-    // onDone will handle the final transition
   }
 
   async function toggleMic() {
-    // Prevent toggling if in a transitional or error state
     if (['connecting', 'initializing', 'stopping', 'error'].includes(status)) {
         return;
     }
@@ -268,7 +235,6 @@ export default function App() {
     }
   })();
 
-  // Store status in DOM attribute for access in onDone if needed (slight hack for cleanup logic)
   useEffect(() => {
     document.documentElement.setAttribute('data-status', status);
   }, [status]);
@@ -277,7 +243,6 @@ export default function App() {
     <div className="container">
       <header className="header">
         <div className="brand">
-          <div className="logo" />
           <div>
             <div className="title">Hyper-Cheap Voice Agent</div>
             <div className="caption">Fennec ASR → Baseten LLaMa → Inworld TTS</div>

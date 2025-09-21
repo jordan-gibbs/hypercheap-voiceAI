@@ -143,10 +143,11 @@ If you also want the built UI served by FastAPI, run `npm run build` in `voice_f
 ---
 
 
-## 6) Extras
+## 6) Customizations
 
 * Swap voices (Inworld) or models (Baseten) by changing the env vars.
 * Tune VAD in `voice_backend/app/agent/fennec_ws.py` for faster/longer turns. It is extremely aggressive by default, which can cut off slow speakers.
 * Swap LLMs in Baseten for better intelligence at the price of increased cost and higher latency
+* Add in the audio markups into the LLM prompt, and switch the model to the Inworld `inworld-tts-1-max` model for increased realism (at double the cost and ~50% increased latency).
 
 MIT © Jordan Gibbs

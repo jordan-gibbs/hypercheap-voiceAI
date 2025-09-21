@@ -46,19 +46,16 @@ html, body, #root { height: 100%; }
 body {
   margin: 0;
   font-family: "Figtree", system-ui, ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  background: radial-gradient(1200px 800px at 10% -10%, color-mix(in lab, var(--accent), transparent 75%), transparent),
-              radial-gradient(1000px 600px at 120% 20%, color-mix(in lab, var(--accent-2), transparent 75%), transparent),
-              var(--bg);
+  background-color: var(--bg);
   color: var(--text);
 }
 
-/* FILL VIEWPORT EXACTLY (no page growth), flex column layout */
 .container {
-  height: 100dvh;         /* dynamic viewport height, fixes mobile 100vh issues */
+  height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 32px 80px 24px; /* bottom padding so transcript never touches edge */
-  overflow: hidden;        /* prevent page scroll; inner areas will scroll */
+  padding: 32px 80px 24px;
+  overflow: hidden;
 }
 
 .header {
@@ -74,21 +71,12 @@ body {
   gap: 12px;
 }
 
-.logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 2px 14px color-mix(in lab, var(--ring), transparent 75%);
-}
-
 .title {
   font-weight: 800;
   letter-spacing: .2px;
   font-size: clamp(1.25rem, 1rem + 3vw, 1.5rem);
 }
 
-/* Sun/Moon icon button */
 .icon { width: 20px; height: 20px; display: block; }
 .icon-btn {
   display: grid;
@@ -107,14 +95,13 @@ body {
   background: color-mix(in lab, var(--ring), transparent 90%);
 }
 
-/* MAIN AREA uses flex so the transcript can take the leftover height */
 .hero {
   margin-top: 28px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  flex: 1 1 auto;     /* fill remaining height under the header */
-  min-height: 0;      /* ✨ allow children to shrink & scroll inside */
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .card {
@@ -122,7 +109,6 @@ body {
   border: 1px solid color-mix(in lab, var(--ring), transparent 80%);
   border-radius: 18px;
   padding: 16px;
-  box-shadow: 0 6px 30px color-mix(in lab, var(--ring), transparent 88%);
 }
 
 .controls {
@@ -139,14 +125,15 @@ body {
   display: grid;
   place-items: center;
   border: 1px solid color-mix(in lab, var(--ring), transparent 60%);
-  background: linear-gradient(180deg, color-mix(in lab, var(--card), transparent 0%), color-mix(in lab, var(--card), transparent 20%));
+  background-color: var(--card);
   cursor: pointer;
-  transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+  transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
 }
 .mic:hover { transform: translateY(-1px); }
 .mic.active {
   border-color: var(--ring);
-  box-shadow: 0 0 0 6px color-mix(in lab, var(--ring), transparent 82%);
+  background-color: var(--ring);
+  color: var(--bg);
 }
 
 .caption {
@@ -166,11 +153,10 @@ body {
   color: var(--text);
 }
 
-/* TRANSCRIPT fills leftover height and scrolls; never pushes page */
 .transcript {
   font-size: 18px;
-  flex: 1 1 auto;  /* take remaining space in .hero */
-  min-height: 0;   /* ✨ critical for scrollable flex children */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
 }
 
