@@ -44,16 +44,12 @@ class FennecWSClient:
         self._ch = channels
         self._vad = vad or DEFAULT_VAD
 
-        self._url = (
-            f"wss://api.fennec-asr.com/api/v1/transcribe/stream?api_key={self._api_key}"
-        )
+        self._url = f"wss://api.fennec-asr.com/api/v1/transcribe/stream?api_key={self._api_key}"
 
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
         self._send_q: asyncio.Queue[Optional[bytes]] = asyncio.Queue(maxsize=256)
-        self._final_q: asyncio.Queue[Optional[str]] = asyncio.Queue(
-            maxsize=max_pending_final
-        )
+        self._final_q: asyncio.Queue[Optional[str]] = asyncio.Queue(maxsize=max_pending_final)
 
         self._send_task: Optional[asyncio.Task] = None
         self._recv_task: Optional[asyncio.Task] = None
@@ -105,9 +101,7 @@ class FennecWSClient:
 
         self._send_task = asyncio.create_task(self._send_loop(), name="fennec_send")
         self._recv_task = asyncio.create_task(self._recv_loop(), name="fennec_recv")
-        self._final_task = asyncio.create_task(
-            self._final_dispatch_loop(), name="fennec_final"
-        )
+        self._final_task = asyncio.create_task(self._final_dispatch_loop(), name="fennec_final")
 
     async def send_pcm(self, pcm_le16: bytes) -> None:
         await self._started.wait()
@@ -178,9 +172,7 @@ class FennecWSClient:
                 break
             try:
                 if self._on_final:
-                    await asyncio.wait_for(
-                        self._on_final(text), timeout=self._callback_timeout_s
-                    )
+                    await asyncio.wait_for(self._on_final(text), timeout=self._callback_timeout_s)
             except asyncio.TimeoutError:
                 logger.warning("[fennec] on_final timed out after %.1fs", self._callback_timeout_s)
             except Exception:
@@ -190,9 +182,7 @@ class FennecWSClient:
 
     async def _safe_call_partial(self, text: str):
         try:
-            await asyncio.wait_for(
-                self._on_partial(text), timeout=min(1.0, self._callback_timeout_s / 5)
-            )
+            await asyncio.wait_for(self._on_partial(text), timeout=min(1.0, self._callback_timeout_s / 5))
         except Exception:
             pass
 
