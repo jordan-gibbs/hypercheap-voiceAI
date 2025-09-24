@@ -1,8 +1,8 @@
 import asyncio
+import contextlib
 import json
 import logging
 from typing import Awaitable, Callable, Optional
-import contextlib
 
 import websockets
 
