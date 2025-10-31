@@ -36,6 +36,7 @@ app.add_middleware(
 
 static_files_path = os.path.join(os.path.dirname(__file__), "static")
 
+
 @app.get("/health")
 async def health():
     return {"ok": True}
@@ -90,8 +91,8 @@ async def ws_agent(ws: WebSocket):
         await ws.send_text(json.dumps(evt))
         # Barge-in: when user starts speaking, interrupt AI output immediately
         try:
-            is_speech = (evt.get("type") == "vad" and evt.get("state") == "speech")
-            utter_begin = (evt.get("type") == "utterance" and evt.get("phase") == "begin")
+            is_speech = evt.get("type") == "vad" and evt.get("state") == "speech"
+            utter_begin = evt.get("type") == "utterance" and evt.get("phase") == "begin"
             if is_speech or utter_begin:
                 await agent.barge_in()
         except Exception:

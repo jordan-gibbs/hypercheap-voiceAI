@@ -1,9 +1,9 @@
 import asyncio
 import base64
+import contextlib
 import json
 import logging
 from typing import AsyncIterator, Optional
-import contextlib
 
 import httpx
 

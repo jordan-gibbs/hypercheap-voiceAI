@@ -77,12 +77,14 @@ class AgentSession:
             self._last_final = text
 
             async with self._hist_lock:
-                if not (self._history and
-                        self._history[-1].get("role") == "user" and
-                        self._history[-1].get("content") == text):
+                if not (
+                    self._history
+                    and self._history[-1].get("role") == "user"
+                    and self._history[-1].get("content") == text
+                ):
                     self._history.append({"role": "user", "content": text})
                     if len(self._history) > self._max_history_msgs:
-                        self._history = self._history[-self._max_history_msgs:]
+                        self._history = self._history[-self._max_history_msgs :]
 
             if on_asr_final:
                 await on_asr_final(text)
@@ -134,7 +136,7 @@ class AgentSession:
             return
 
         async with self._hist_lock:
-            full_hist = list(self._history[-self._max_history_msgs:])
+            full_hist = list(self._history[-self._max_history_msgs :])
         if full_hist and full_hist[-1].get("role") == "user" and full_hist[-1].get("content") == utext:
             hist_for_llm = full_hist[:-1]
         else:
@@ -214,7 +216,7 @@ class AgentSession:
                 async with self._hist_lock:
                     self._history.append({"role": "assistant", "content": reply_text})
                     if len(self._history) > self._max_history_msgs:
-                        self._history = self._history[-self._max_history_msgs:]
+                        self._history = self._history[-self._max_history_msgs :]
 
             if self._on_turn_done:
                 await self._on_turn_done()
@@ -229,12 +231,14 @@ class AgentSession:
         async with self._barge_lock:
             # Ensure last final is present in history
             async with self._hist_lock:
-                if self._last_final and not (self._history and
-                    self._history[-1].get("role") == "user" and
-                    self._history[-1].get("content") == self._last_final):
+                if self._last_final and not (
+                    self._history
+                    and self._history[-1].get("role") == "user"
+                    and self._history[-1].get("content") == self._last_final
+                ):
                     self._history.append({"role": "user", "content": self._last_final})
                     if len(self._history) > self._max_history_msgs:
-                        self._history = self._history[-self._max_history_msgs:]
+                        self._history = self._history[-self._max_history_msgs :]
 
             # Cancel any active speak task
             if self._speak_task and not self._speak_task.done():

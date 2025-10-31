@@ -3,8 +3,8 @@
 import asyncio
 import json
 import logging
-from typing import Awaitable, Callable, Optional, Literal
-from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+from typing import Awaitable, Callable, Literal, Optional
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import httpx
 from websockets.asyncio.client import connect as ws_connect
@@ -230,9 +230,7 @@ class FennecWSClient:
                 # ignore partials by design
 
         except ConnectionClosed as e:
-            logger.info(
-                "[fennec] connection closed by server (code=%s)", getattr(e, "code", "?")
-            )
+            logger.info("[fennec] connection closed by server (code=%s)", getattr(e, "code", "?"))
         except Exception as e:
             logger.warning("[fennec] recv error: %s", e)
 
