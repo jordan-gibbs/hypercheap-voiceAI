@@ -1,27 +1,48 @@
-// pcm-processor.js
-// AudioWorkletProcessor to capture and pass microphone audio to the main thread.
-
+// Input (e.g. 48 kHz) float -> 16 kHz PCM16, batched efficiently in the worklet.
 class PCMProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
+    this.buf = new Float32Array(0);
+    // FIX: Increased target chunk size from 20ms (320 samples) to 250ms (4000 samples).
+    this.targetOutSamples = 1000; // 62.5ms @ 16k
   }
-
-  process(inputs, outputs) {
-    // Get the first audio input from the microphone source.
-    const input = inputs[0];
-
-    if (input && input.length > 0) {
-      // The first channel of the input is a Float32Array.
-      const pcmData = input[0];
-      // Send the raw Float32Array back to the main thread for
-      // further processing (resampling and encoding).
-      this.port.postMessage(pcmData);
+  // simple linear resampler
+  resampleTo16k(f32) {
+    const ratio = sampleRate / 16000; // sampleRate is global in AW
+    const outLen = Math.floor(f32.length / ratio);
+    const out = new Int16Array(outLen);
+    for (let i = 0; i < outLen; i++) {
+      const idx = i * ratio, i0 = Math.floor(idx), i1 = Math.min(i0 + 1, f32.length - 1);
+      const s = f32[i0] * (1 - (idx - i0)) + f32[i1] * (idx - i0);
+      const v = Math.max(-1, Math.min(1, s));
+      out[i] = v < 0 ? v * 0x8000 : v * 0x7FFF;
     }
+    return out;
+  }
+  process(inputs) {
+    const ch0 = inputs?.[0]?.[0];
+    if (ch0) {
+      // append into a growing buffer at the input sample rate
+      const merged = new Float32Array(this.buf.length + ch0.length);
+      merged.set(this.buf, 0);
+      merged.set(ch0, this.buf.length);
+      this.buf = merged;
 
-    // Return true to keep the processor active and receiving data.
+      // Calculate required input samples dynamically based on the actual sample rate.
+      // E.g., 4000 samples @ 16k requires (48000/16000) * 4000 = 12000 samples @ 48k.
+      const ratio = sampleRate / 16000;
+      const requiredInputSamples = Math.ceil(this.targetOutSamples * ratio);
+
+      // when enough input is available, emit a chunk
+      while (this.buf.length >= requiredInputSamples) {
+        const slice = this.buf.subarray(0, requiredInputSamples);
+        this.buf = this.buf.subarray(requiredInputSamples);
+        const pcm = this.resampleTo16k(slice);
+        // Transfer the underlying ArrayBuffer (zero-copy)
+        this.port.postMessage(pcm.buffer, [pcm.buffer]);
+      }
+    }
     return true;
   }
 }
-
-// Register the processor with the name expected by the `mic.ts` file.
 registerProcessor('pcm-processor', PCMProcessor);

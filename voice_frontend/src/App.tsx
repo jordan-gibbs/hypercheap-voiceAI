@@ -245,7 +245,7 @@ export default function App() {
         <div className="brand">
           <div>
             <div className="title">Hyper-Cheap Voice Agent</div>
-            <div className="caption">Fennec ASR → Baseten LLaMa → Inworld TTS</div>
+            <div className="caption">Fennec ASR → Baseten Qwen → Inworld TTS</div>
           </div>
         </div>
         <button className="icon-btn" onClick={toggle} aria-label="Toggle theme">

@@ -36,7 +36,6 @@ app.add_middleware(
 
 static_files_path = os.path.join(os.path.dirname(__file__), "static")
 
-
 @app.get("/health")
 async def health():
     return {"ok": True}
@@ -47,11 +46,12 @@ async def ws_agent(ws: WebSocket):
     await ws.accept()
     await ws.send_text(StatusEvent(message="connected").model_dump_json())
 
+    # Construct components
     fennec = FennecWSClient(
         api_key=settings.fennec_api_key,
         sample_rate=settings.fennec_sample_rate,
         channels=settings.fennec_channels,
-        vad=DEFAULT_VAD,
+        vad=DEFAULT_VAD,  # IMPORTANT: request VAD events + cadence
     )
     llm = BasetenChat(
         api_key=settings.baseten_api_key,
@@ -85,6 +85,18 @@ async def ws_agent(ws: WebSocket):
     async def on_turn_done():
         await ws.send_text(TurnDoneEvent().model_dump_json())
 
+    async def on_vad(evt: dict):
+        # Forward raw VAD/utterance events to the client (UI meters, speaking state, etc.)
+        await ws.send_text(json.dumps(evt))
+        # Barge-in: when user starts speaking, interrupt AI output immediately
+        try:
+            is_speech = (evt.get("type") == "vad" and evt.get("state") == "speech")
+            utter_begin = (evt.get("type") == "utterance" and evt.get("phase") == "begin")
+            if is_speech or utter_begin:
+                await agent.barge_in()
+        except Exception:
+            log.exception("barge-in interrupt failed")
+
     try:
         while True:
             msg = await ws.receive()
@@ -106,6 +118,7 @@ async def ws_agent(ws: WebSocket):
                                 on_segment_done=on_segment_done,
                                 on_audio_start=on_audio_start,
                                 on_turn_done=on_turn_done,
+                                on_vad=on_vad,  # wire VAD events through session -> fennec
                             )
                             session_started = True
                             await ws.send_text(StatusEvent(message="ready").model_dump_json())

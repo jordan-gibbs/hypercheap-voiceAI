@@ -1,66 +1,62 @@
-import { resampleAndEncodePCM16 } from './resample'
 import processorCode from '../worklets/pcm-processor.js?raw'
 
+/**
+ * Start mic capture and emit ~20ms chunks of PCM16 @ 16kHz (little-endian).
+ * We do resampling inside an AudioWorklet for low latency and zero GC churn.
+ */
 export async function startMic() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+  if (!navigator.mediaDevices?.getUserMedia) {
     throw new Error('getUserMedia not supported or insecure context (use https or localhost)')
   }
 
+  // Ask the browser for a clean, single-channel capture; let OS do EC/NS/AGC if needed
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: {
       channelCount: 1,
       echoCancellation: true,
       noiseSuppression: true,
       autoGainControl: true,
-    }
+    },
   })
 
-  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 48000 })
+  // Interactive latency; 48k is typical input rate on most devices
+  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({
+    sampleRate: 48000,
+    latencyHint: 'interactive',
+  })
 
-  // Create a Blob from the raw code and generate a local URL
-  const processorBlob = new Blob([processorCode], { type: 'application/javascript' })
-  const processorUrl = URL.createObjectURL(processorBlob)
-
-  await ctx.audioWorklet.addModule(processorUrl)
-  URL.revokeObjectURL(processorUrl) // Clean up the blob URL after it's been used
-
+  // Load the worklet from a blob (works in Vite/Prod without public file)
+  const blob = new Blob([processorCode], { type: 'application/javascript' })
+  const url = URL.createObjectURL(blob)
+  await ctx.audioWorklet.addModule(url)
+  URL.revokeObjectURL(url)
 
   const source = ctx.createMediaStreamSource(stream)
   const node = new AudioWorkletNode(ctx, 'pcm-processor')
+  source.connect(node) // no loopback
 
-  source.connect(node)
-  // Do not connect to destination to avoid loopback
-
-  let floatQueue: Float32Array[] = []
   const listeners: Array<(bytes: Uint8Array) => void> = []
 
-  node.port.onmessage = (event) => {
-    const chunk = event.data as Float32Array
-    floatQueue.push(chunk)
-
-    // Aim ~32ms windows
-    const targetWindow = Math.floor(0.032 * ctx.sampleRate)
-    let total = 0
-    for (const f of floatQueue) total += f.length
-    if (total >= targetWindow) {
-      const merged = new Float32Array(total)
-      let o = 0
-      for (const f of floatQueue) { merged.set(f, o); o += f.length }
-      floatQueue = []
-
-      const bytes = resampleAndEncodePCM16(merged, ctx.sampleRate, 16000)
+  node.port.onmessage = (event: MessageEvent) => {
+    // Worklet posts ArrayBuffers that are already PCM16 LE @ 16kHz
+    const data = event.data
+    if (data instanceof ArrayBuffer) {
+      const bytes = new Uint8Array(data)
       for (const fn of listeners) fn(bytes)
     }
   }
 
+  let closed = false
   return {
     stream,
-    sampleRate: ctx.sampleRate,
+    sampleRate: 16000,
     stop: () => {
-      stream.getTracks().forEach(t => t.stop())
-      node.disconnect()
-      source.disconnect()
-      ctx.close()
+      if (closed) return
+      closed = true
+      try { stream.getTracks().forEach(t => t.stop()) } catch {}
+      try { node.disconnect() } catch {}
+      try { source.disconnect() } catch {}
+      try { ctx.close() } catch {}
     },
     onAudio: (cb: (bytes: Uint8Array) => void) => {
       listeners.push(cb)
@@ -68,6 +64,6 @@ export async function startMic() {
         const i = listeners.indexOf(cb)
         if (i >= 0) listeners.splice(i, 1)
       }
-    }
+    },
   }
 }

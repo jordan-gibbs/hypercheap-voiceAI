@@ -9,12 +9,13 @@
 **This stack achieves:**
 - Total costs as low as **\$0.28 per hour** ($0.0046 per minute)
 - Latency between 600-800ms from end of speech to first audio frame
+- Full server VAD controls thanks to Fennec-ASR with instant barge-in capability
 - State-of-the-art voice performance thanks to inworld.ai
 
 From a cost perspective, the Hypercheap stack is: 
 - **32x** cheaper than OpenAI Realtime
 - **20x** cheaper than Elevenlabs Voice Agents
-- **10x** cheaper than Vapi
+- **10x** cheaper than most Vapi stacks
 
 > **Stack:** Fennec (Realtime ASR) → Baseten (LLM via OpenAI-compatible API) → Inworld (streamed TTS)
 
