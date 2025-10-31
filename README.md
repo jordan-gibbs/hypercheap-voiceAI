@@ -22,9 +22,14 @@ From a cost perspective, the Hypercheap stack is:
 ---
 # Demo
 
-https://github.com/user-attachments/assets/f388e02d-0565-4ac0-b1bc-cb9c6651d25d
+https://github.com/user-attachments/assets/831f5196-de5b-41d7-bb4c-b03e9df07f53
 
 ---
+
+# Try the hosted version 
+
+[https://hypercheap-voiceai.onrender.com/](https://hypercheap-voiceai.onrender.com/)
+
 # Setup
 
 ## 1) Create accounts & grab keys
